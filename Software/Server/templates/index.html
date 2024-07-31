@@ -1,0 +1,160 @@
+<!--Created by Amit Kumar Singh-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Street Guard presented by AEMS</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #2d2d2d;
+            color: #e5e7eb;
+        }
+        .switch input {
+            display: none;
+        }
+        .slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #6b7280;
+            transition: .4s;
+            border-radius: 9999px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 39px;
+            width: 39px;
+            left: 6px;
+            bottom: 6px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #ef4444;
+        }
+        input:checked + .slider:before {
+            transform: translateX(39px);
+        }
+        .switch {   
+            width: 90px;
+            height: 51px;
+        }
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+        }
+        .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 1px solid #e5e7eb;
+        }
+        @media (min-width: 1024px) {
+            .iframe-container {
+                width: 50%;
+                padding-bottom: 28.125%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-8 text-center">Street Guard Admin Panel</h1>
+        <div class="flex flex-col lg:flex-row">
+            <div class="flex-1">
+
+                <div class="mb-6">
+                    <label class="switch relative inline-block w-16 h-8 mr-2 align-middle">
+                        <input type="checkbox" id="toggle_automated">
+                        <span class="slider"></span>
+                    </label>
+                    <label for="toggle_automated" class="text-lg">Automated Mode</label>
+                </div>
+
+                <div class="mb-6">
+                    <label class="switch relative inline-block w-16 h-8 mr-2 align-middle">
+                        <input type="checkbox" id="toggle_light">
+                        <span class="slider"></span>
+                    </label>
+                    <label for="toggle_light" class="text-lg">Light</label>
+                </div>
+
+                <div class="mb-6">
+                    <label class="switch relative inline-block w-16 h-8 mr-2 align-middle">
+                        <input type="checkbox" id="toggle_dim">
+                        <span class="slider"></span>
+                    </label>
+                    <label for="toggle_dim" class="text-lg">Dim/Bright</label>
+                </div>
+                <div class="box bg-gray-700 p-10 rounded-md">Light Status: <span id="lightStatus"></span></div>
+            </div>
+
+            <div class="iframe-container lg:ml-4 mt-4 lg:mt-0">
+                <iframe src="http://192.168.55.83/"></iframe>
+            </div>
+        </div>
+
+        <div id="sensor_data" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+            <div class="box bg-gray-700 p-4 rounded-md">Temperature (BMP180): <span id="temperatureBMP"></span></div>
+            <div class="box bg-gray-700 p-4 rounded-md">Pressure: <span id="pressure"></span></div>
+            <div class="box bg-gray-700 p-4 rounded-md">Temperature (DHT11): <span id="temperatureDHT"></span></div>
+            <div class="box bg-gray-700 p-4 rounded-md">Humidity: <span id="humidity"></span></div>
+            <div class="box bg-gray-700 p-4 rounded-md">Rain Sensor: <span id="rainSensor"></span></div>
+            <div class="box bg-gray-700 p-4 rounded-md">Analog Value (LDR): <span id="lightSensor"></span></div>
+            <div class="box bg-gray-700 p-4 rounded-md">PIR Sensor: <span id="pirSensor"></span></div>
+            <div class="box bg-gray-700 p-4 rounded-md">Relay Status: <span id="relayStatus"></span></div>
+            <div class="box bg-gray-700 p-4 rounded-md">Servo Position: <span id="servoPosition"></span></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            setInterval(fetchData, 5000);
+
+            $('#toggle_automated').change(function() {
+                $.get('/toggle_automated', function(data) {
+                    console.log(data);
+                });
+            });
+
+            $('#toggle_light').change(function() {
+                $.get('/toggle_light', function(data) {
+                    console.log(data);
+                });
+            });
+
+            $('#toggle_dim').change(function() {
+                $.get('/toggle_dim', function(data) {
+                    console.log(data);
+                });
+            });
+        });
+
+        function fetchData() {
+            $.get('/get_data', function(data) {
+                $('#temperatureBMP').text(data.temperatureBMP + " *C");
+                $('#pressure').text(data.pressure + " Pa");
+                $('#temperatureDHT').text(data.temperatureDHT + " *C");
+                $('#humidity').text(data.humidity + " %");
+                $('#rainSensor').text(data.rainSensor);
+                $('#lightSensor').text(data.lightSensor);
+                $('#pirSensor').text(data.pirSensor);
+                $('#relayStatus').text(data.relayStatus);
+                $('#servoPosition').text(data.servoPosition + " degrees");
+                $('#lightStatus').text(data.lightStatus ? "ON" : "OFF");
+            });
+        }
+    </script>
+</body>
+</html>
