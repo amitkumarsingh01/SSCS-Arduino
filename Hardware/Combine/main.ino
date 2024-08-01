@@ -1,5 +1,5 @@
 // Arduino R4 WiFi code final 
-// created by Amit Kumar Singh
+// created for SSSC Arduino
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include "DHT.h"
@@ -127,22 +127,30 @@ void loop() {
       
       // Display Data on LCD
       lcd.clear();
+
+      // Display LDR value
       lcd.setCursor(0, 0);
-      lcd.print(" LDR: ");
-      lcd.print(analogValue);
+      lcd.print("LDR: ");
+      lcd.print((int)(analogValue / 10.23));
+      lcd.print(" ");
+      if (analogValue > 512) {
+          lcd.print("OFF");
+      } else {
+          lcd.print("ON");
+      }
+
+      // Display Rain and PIR values
       lcd.setCursor(0, 1);
       lcd.print("Rain: ");
-      lcd.print(rainSensorValue);
+      lcd.print((int)(rainSensorValue / 10.23));
       lcd.print(" PIR: ");
       lcd.print(pirValue);
+
 
       // Send Weather Data to ThingSpeak
       sendDataToThingSpeak(temperatureDHT, humidity, rainSensorValue, analogValue);
 
-
-
-
-      if (analogValue > 545) {
+      if (analogValue > 512) {
         Serial.println(" => Bright");
         digitalWrite(RELAY_PIN, HIGH); // Turn relay off
       } else {

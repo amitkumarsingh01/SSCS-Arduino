@@ -4,7 +4,7 @@ import requests
 
 app = Flask(__name__)
 
-ESP_IP = "http://192.168.3.169"
+ESP_IP = "http://192.168.205.37"
 
 @app.route('/')
 def index():

@@ -1,10 +1,10 @@
-<!--Created by Amit Kumar Singh-->
+<!-- Created by Amit Kumar Singh -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Street Guard presented by AEMS</title>
+    <title>Eco Shine</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
@@ -70,7 +70,7 @@
 </head>
 <body>
     <div class="container mx-auto p-8">
-        <h1 class="text-3xl font-bold mb-8 text-center">Street Guard Admin Panel</h1>
+        <h1 class="text-3xl font-bold mb-8 text-center">ECO SHINE ADMIN PANEL</h1>
         <div class="flex flex-col lg:flex-row">
             <div class="flex-1">
 
@@ -101,13 +101,12 @@
             </div>
 
             <div class="iframe-container lg:ml-4 mt-4 lg:mt-0">
-                <iframe src="http://192.168.55.83/"></iframe>
+                <img src="{{ url_for('static', filename='light.png') }}" alt="Light Image">
             </div>
+            
         </div>
 
         <div id="sensor_data" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-            <div class="box bg-gray-700 p-4 rounded-md">Temperature (BMP180): <span id="temperatureBMP"></span></div>
-            <div class="box bg-gray-700 p-4 rounded-md">Pressure: <span id="pressure"></span></div>
             <div class="box bg-gray-700 p-4 rounded-md">Temperature (DHT11): <span id="temperatureDHT"></span></div>
             <div class="box bg-gray-700 p-4 rounded-md">Humidity: <span id="humidity"></span></div>
             <div class="box bg-gray-700 p-4 rounded-md">Rain Sensor: <span id="rainSensor"></span></div>
@@ -143,12 +142,10 @@
 
         function fetchData() {
             $.get('/get_data', function(data) {
-                $('#temperatureBMP').text(data.temperatureBMP + " *C");
-                $('#pressure').text(data.pressure + " Pa");
-                $('#temperatureDHT').text(data.temperatureDHT + " *C");
+                $('#temperatureDHT').text(data.temperatureDHT + " °C");
                 $('#humidity').text(data.humidity + " %");
-                $('#rainSensor').text(data.rainSensor);
-                $('#lightSensor').text(data.lightSensor);
+                $('#rainSensor').text(data.rainSensor/10.23);
+                $('#lightSensor').text(data.lightSensor/10.23);
                 $('#pirSensor').text(data.pirSensor);
                 $('#relayStatus').text(data.relayStatus);
                 $('#servoPosition').text(data.servoPosition + " degrees");

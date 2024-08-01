@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Monitoring ECO SHINE</title>
+    <!-- Tailwind CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+        @media(min-width: 768px) {
+            .sensor-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        .sensor-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        .sensor-card:hover {
+            transform: translateY(-5px);
+        }
+        .sensor-card img {
+            width: 100%;
+            height: auto;
+            padding: 10%;
+        }
+        .sensor-info {
+            padding: 1rem;
+        }
+        .sensor-value-box {
+            background-color: #dc2626;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        .timestamp {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        .load-more {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .graph-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        .graph-section canvas {     
+            max-width: 100%;
+        }
+        .graph-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .graph-controls {
+            flex: 1;
+            max-width: 300px;
+            margin-right: 20px;
+        }
+        .graph-canvas {
+            flex: 2;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Main Content -->
+<div id="content" class="content p-4">
+    <!-- Sensor Section -->
+    <div id="sensor" class="p-4">
+        <h1 class="text-center text-red-700 mb-4 text-4xl">Weather Monitoring ECO SHINE</h1>
+        <div class="sensor-grid grid grid-cols-4 gap-4">
+            <!-- Sensor Cards -->
+            <div class="sensor-card">
+                <img src="assets/img used/temp.png" alt="Temperature">
+                <div class="sensor-info" id="bmp-info">
+                    <h2 class="text-red-700 text-center mb-2">Temperature</h2>
+                    <div id="dht-temp"></div>
+                </div>
+            </div>
+            <div class="sensor-card">
+                <img src="assets/img used/humi.png" alt="Humidity">
+                <div class="sensor-info" id="dht-info">
+                    <h2 class="text-red-700 text-center mb-2">Humidity</h2>
+                    <div id="dht-humidity"></div>
+                </div>
+            </div>
+            <div class="sensor-card">
+                <img src="assets/img used/rain.png" alt="Rain Sensor">
+                <div class="sensor-info" id="rain-info">
+                    <h2 class="text-red-700 text-center mb-2">Rain Sensor</h2>
+                    <div id="rain-values"></div>
+                </div>
+            </div>
+            <div class="sensor-card">
+                <img src="assets/img used/lighht.png" alt="LDR Sensor">
+                <div class="sensor-info" id="ldr-info">
+                    <h2 class="text-red-700 text-center mb-2">LDR Sensor</h2>
+                    <div id="ldr-values"></div>
+                </div>
+            </div>
+        </div>
+        <div class="timestamp" id="timestamp"></div>
+    </div>
+</div>
+
+<!-- Data Section -->
+<div id="data" class="container mx-auto p-4">
+    <h1 class="text-center text-red-700 mb-4 text-4xl">Data</h1>
+    <div class="overflow-x-auto">
+        <table class="table-auto w-full bg-white shadow-md rounded-md">
+            <thead class="bg-red-700 text-white">
+                <tr>
+                    <th class="px-4 py-2">Timestamp</th>
+                    <th class="px-4 py-2">Temperature (°C)</th>
+                    <th class="px-4 py-2">Humidity (%)</th>
+                    <th class="px-4 py-2">Rain Probability(%)</th>
+                    <th class="px-4 py-2">Light Intensity (%)</th>
+                </tr>
+            </thead>
+            <tbody id="data-container"></tbody>
+        </table>
+    </div>
+    <div class="text-center mt-4">
+        <button id="load-more-btn" class="bg-red-700 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none">Load More</button>
+    </div>
+</div>
+
+<script>
+    let numResultsLoaded = 10; // Initial number of results loaded
+
+    async function fetchData(url) {
+        const response = await fetch(url);
+        const data = await response.json();
+        return data.feeds.reverse(); // Reverse the order to display newest first
+    }
+
+    async function renderData(feeds) {
+        const container = document.getElementById('data-container');
+        container.innerHTML = ''; // Clear previous data
+
+        feeds.forEach(feed => {
+            const createdAt = new Date(feed.created_at).toLocaleString();
+            const rainValue = (feed.field3 / 1023) * 100;
+            const ldrValue = (feed.field4 / 1023) * 100;
+            const row = `
+                <tr>
+                    <td class="border px-4 py-2">${createdAt}</td>
+                    <td class="border px-4 py-2">${feed.field1}</td>
+                    <td class="border px-4 py-2">${feed.field2}</td>
+                    <td class="border px-4 py-2">${rainValue.toFixed(2)}</td>
+                    <td class="border px-4 py-2">${ldrValue.toFixed(2)}</td>
+                </tr>
+            `;
+            container.insertAdjacentHTML('beforeend', row);
+        });
+    }
+
+    async function loadMoreData() {
+        const url = `https://api.thingspeak.com/channels/2576557/feeds.json?results=${numResultsLoaded}`;
+        const feeds = await fetchData(url);
+        renderData(feeds);
+        numResultsLoaded += 10; // Increment the number of results loaded for the next request
+    }
+
+    document.getElementById('load-more-btn').addEventListener('click', loadMoreData);
+
+    // Initial data load
+    loadMoreData();
+</script>
+
+<!-- Bootstrap and Custom JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    async function fetchSensorData() {
+        try {
+            const response = await fetch('https://api.thingspeak.com/channels/2576557/feeds.json?results=2');
+            const data = await response.json();
+            const feed = data.feeds[0];
+
+            const rainValue = (feed.field3 / 1023) * 100;
+            const ldrValue = (feed.field4 / 1023) * 100;
+
+            const dhtTemp = `<div class="sensor-value-box">Temperature: ${feed.field1} °C</div>`;
+            const dhtHumidity = `<div class="sensor-value-box">Humidity: ${feed.field2} %</div>`;
+            const rainValues = `<div class="sensor-value-box">Rain: ${rainValue.toFixed(2)} %</div>`;
+            const ldrValues = `<div class="sensor-value-box">Light Intensity: ${ldrValue.toFixed(2)} %</div>`;
+
+            document.getElementById('dht-temp').innerHTML = dhtTemp;
+            document.getElementById('dht-humidity').innerHTML = dhtHumidity;
+            document.getElementById('rain-values').innerHTML = rainValues;
+            document.getElementById('ldr-values').innerHTML = ldrValues;
+
+            const timestamp = `Last updated at: ${new Date(feed.created_at).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`;
+            document.getElementById('timestamp').innerText = timestamp;
+
+            plotGraph();
+        } catch (error) {
+            console.error('Error fetching sensor data:', error);
+        }
+    }
+
+    async function plotGraph() {
+        const xParam = document.getElementById('x-param').value;
+        const yParam = document.getElementById('y-param').value;
+
+        try {
+            const response = await fetch('https://api.thingspeak.com/channels/2576557/feeds.json?results=50');
+            const data = await response.json();
+            const feeds = data.feeds.reverse();
+
+            const xLabels = feeds.map(feed => new Date(feed.created_at).toLocaleString());
+            const yValues = feeds.map(feed => {
+                if (yParam === 'field3' || yParam === 'field4') {
+                    return (feed[yParam] / 1023) * 100;
+                }
+                return feed[yParam];
+            });
+
+            const ctx = document.getElementById('data-graph').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: xLabels,
+                    datasets: [{
+                        label: `${yParam}`,
+                        data: yValues,
+                        borderColor: 'rgba(220, 38, 38, 0.8)',
+                        backgroundColor: 'rgba(220, 38, 38, 0.2)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: xParam
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: yParam
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error plotting graph:', error);
+        }
+    }
+
+    document.getElementById('plot-button').addEventListener('click', plotGraph);
+
+    fetchSensorData();
+</script>
+
+</body>
+</html>
